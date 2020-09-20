@@ -193,20 +193,16 @@ getRandomPeople(randomUsersUrl);
 // function creates and appends search form. keyup event listener on the search field triggers searchUser function
 function createSearchForm() {
 
-    let searchForm = document.createElement('form');
+    let searchForm = createNode('form')
         searchForm.action = '#';
         searchForm.method = 'get';
 
-    let inputSearch = document.createElement('input');
+    let inputSearch = createNode('input', 'search-input','search-input' );
         inputSearch.type = 'search';
-        inputSearch.id = 'search-input';
-        inputSearch.classList = 'search-input';
         inputSearch.placeholder = 'Search...';
-    let inputSubmit = document.createElement('input');
+    let inputSubmit = createNode('input', 'search-submit', 'search-submit');
         inputSubmit.type = 'submit';
         inputSubmit.value = '🔍';
-        inputSubmit.id = 'search-submit';
-        inputSubmit.classList = 'search-submit';
 
         append(searchForm, inputSearch)
         append(searchForm, inputSubmit)
