@@ -5,8 +5,6 @@ const modalContainer = document.createElement('div');
 modalContainer.classList = 'modal-container';
     gallery.appendChild(modalContainer);
     modalContainer.style.display = 'none';
-
-
 function getRandomPeople (url){
     fetch(url) // Call the fetch function passing the url of the API as a parameter
     .then( response => response.json())
@@ -39,7 +37,6 @@ function gatherUsersData(data){
     return myUsers;
 
 }
-{/* <div class="card" id="${user.id.username}"> */}
 
 function generateUsers(data){
     data.map(user => {
@@ -61,25 +58,24 @@ function generateUsers(data){
     return data;
 }
 
-function enableModal(myUsers){
+
+function enableModal(users){
     const userCards = document.querySelectorAll('.card');    
     
     userCards.forEach(card => card.addEventListener("click",  (e)=> {
         let selectedCard = e.currentTarget.id;
-        console.log(selectedCard);
         modalContainer.style.display = 'block';
 
-        for (let i=0; i< myUsers.length; i++){
-            // let username = myUsers[i].id.username;
-            let username = myUsers[i].id.toLowerCase();
+        for (let i=0; i< users.length; i++){
+            let username = users[i].id.toLowerCase();
             if(username === selectedCard){
-               let activeUserModal = myUsers[i];
-                generateModal(activeUserModal);
+               activeUserModal = users[i];
+                generateModal(activeUserModal, users);
             }
         }
 }))}
 
-function generateModal(selectedUser){
+function generateModal(selectedUser, users){
     let user = selectedUser;
         modalContainer.style.display = 'block';
 
@@ -91,6 +87,8 @@ function generateModal(selectedUser){
         extitButton.type = 'button';
         extitButton.id = 'modal-close-btn';
         extitButton.classList = 'modal-close-btn';
+    const extitButtonX = document.createElement('strong');
+        extitButtonX.innerText = 'X';
     const modalInfoContainer = document.createElement('div');
         modalInfoContainer.classList = 'modal-info-container';
 
@@ -120,7 +118,7 @@ function generateModal(selectedUser){
             <p class="modal-text">${streetAdd}</p>
             <p class="modal-text">Birthday: ${userBirthday}</p>
     `;
-
+    extitButton.appendChild(extitButtonX);
     modalContent.appendChild(extitButton);
     modalContent.appendChild(modalInfoContainer);
     modalInfoContainer.insertAdjacentHTML('beforeend',html);
@@ -130,40 +128,33 @@ function generateModal(selectedUser){
 
     modalContent.appendChild(modalNavigation);
 
-    navigation( user , nextButton, prevButton);
+    navigation(user, users, nextButton, prevButton);
     modalContainer.appendChild(modalContent);
 
     extitButton.addEventListener('click', () => {
         let modalClose = document.querySelector('.modal-container')
         modalContainer.style.display = 'none';
     })
-
-
 }
 
-
-function navigation (user , nextButton, prevButton){
-
-    for (let i=0; i< myUsers.length; i++){
-        // if(user.id.username === myUsers[i].id.username){
-        if(user.id === myUsers[i].id){
-            if( i < myUsers.length - 1){
-                nextUser = myUsers[i+1];
+function navigation (user, users, nextButton, prevButton){
+    for (let i=0; i< users.length; i++){
+        if(user.id === users[i].id){
+            if( i < users.length - 1){
+                nextUser = users[i+1];
                 nextButton.style.display = 'block';
-
                 nextButton.addEventListener('click', () => {
-                    generateModal(nextUser);
-                
+                    generateModal(nextUser, users);
                 })
                 } else{
                     nextButton.style.display = 'none';
                 }
 
                 if( i > 0){
-                    previousUser = myUsers[i-1];
+                    previousUser = users[i-1];
                     prevButton.style.display = 'block';
                     prevButton.addEventListener('click', () => {
-                        generateModal(previousUser);
+                        generateModal(previousUser, users);
                     })
                     }else{
                         prevButton.style.display = 'none';
@@ -171,8 +162,6 @@ function navigation (user , nextButton, prevButton){
         }
     }
 }
-
-
 // normalize string and remove all unnecessary characters
 //informed from this discussion https://stackoverflow.com/questions/8358084/regular-expression-to-reformat-a-us-phone-number-in-javascript 
 
@@ -184,29 +173,10 @@ function phoneNumberNormalize(phone){
 
 getRandomPeople(randomUsersUrl);
 
-
 //----------------------------------------------------------------
 // event listeners
 //----------------------------------------------------------------
 
-
-
-
-
-
-//exceeds
-
-// You can use the commented out markup below as a template
-// for your search feature, but you must use JS to create and 
-// append it to `search-container` div.
-
-// IMPORTANT: Altering the arrangement of the markup and the 
-// attributes used may break the styles or functionality.
-
-// <form action="#" method="get">
-//     <input type="search" id="search-input" class="search-input" placeholder="Search...">
-//     <input type="submit" value="&#x1F50D;" id="search-submit" class="search-submit">
-// </form>
 
 function createSearchForm() {
 
@@ -229,34 +199,51 @@ function createSearchForm() {
         searchForm.appendChild(inputSubmit);
         searchContainer.appendChild(searchForm);
 
-
-        inputSubmit.addEventListener('click', search => {
-            alert(inputSearch.value);
+        // inputSubmit.addEventListener('click', search => {
+        //     searchUser(inputSearch.value);
+        // })
+        inputSearch.addEventListener('keyup', search => {
             searchUser(inputSearch.value);
         })
-    
+
 
 }
-
 
 createSearchForm();
-let searchedUsers = [];
-
-
 function searchUser( query ) {
+    let searchedUsers = [];
+
     let search = query.toLowerCase();
-    console.log(query);
     let userCards = document.querySelectorAll('.card');
-    console.log(userCards)
-    console.log(userCards.length)
-    for ( let i = 0; i < userCards.length; i++ ) {
-        if (userCards[i].id.includes(query)){
-            userCards[i].style.display = 'block';
-          }else{
-            userCards[i].style.display = 'none';
+    for ( let i = 0; i < myUsers.length; i++ ) {
+        let userSearch = myUsers[i].id.toLowerCase();
+        if (userSearch.includes(search)){            
+            searchedUsers.push(myUsers[i]);
           }
     }
+    let cleanCards = document.querySelectorAll('.card');
+    for (let i = 0; i < cleanCards.length; i++){
+        cleanCards[i].remove();
+    }
+    gallery.innerHTML = " ";
+    gallery.appendChild(modalContainer);
+
+    generateUsers(searchedUsers);
+    enableModal(searchedUsers)
+
+    const searchedUserCards = document.querySelectorAll('.card');    
+    
+    searchedUserCards.forEach(card => card.addEventListener("click",  (e)=> {
+        let selectedCard = e.currentTarget.id.toLowerCase();
+        modalContainer.style.display = 'block';
+
+        for (let i=0; i< searchedUsers.length; i++){
+            let username = searchedUsers[i].id.toLowerCase();
+            if(username.toLowerCase() === selectedCard.toLowerCase()){
+                activeUserModal = searchedUsers[i];
+                activeUser = myUsers[i];
+            }
+        }
+        generateModal(activeUserModal, searchedUsers);
+    }))
 }
-
-
-// To do  fix modal user view after search. 
