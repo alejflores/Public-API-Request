@@ -1,16 +1,17 @@
 const randomUsersUrl = 'https://randomuser.me/api/?results=12&nat=us';
 const gallery = document.querySelector('#gallery');
 const searchContainer = document.querySelector('.search-container')
-const modalContainer = document.createElement('div');
-modalContainer.classList = 'modal-container';
-    gallery.appendChild(modalContainer);
+const modalContainer = createNode('div', 'modal-container');
+    append(gallery, modalContainer)
     modalContainer.style.display = 'none';
+
+// fetches users from Random User API, and invokes functions to display users dynamically 
 function getRandomPeople (url){
     fetch(url) // Call the fetch function passing the url of the API as a parameter
     .then( response => response.json())
     .then( data => gatherUsersData(data)) // returns myUsers
     .then( myUsers => generateUsers(myUsers) )//generates user cards 
-    .then( myUsers => enableModal(myUsers) )//enables event listeners on cards, to enable modal
+    .then( myUsers => enableModal(myUsers) )//enables event listeners on cards and  enables modal
     .catch((error) => {
         console.error('Error:', error);
       });
@@ -20,11 +21,28 @@ function getRandomPeople (url){
 // helper functions
 //----------------------------------------------------------------
 
+// function creates an element with the tagname, classes and id attributes
+function createNode(element, classlist, id) {
+    let myElement = document.createElement(element);
+        if(classlist){
+            myElement.classList=`${classlist}`;
+        }
+        if(id){
+        myElement.id=`${id}`;
+        }
+    return myElement; 
+  }
+
+  function append(parent, el) {
+    return parent.appendChild(el); // Append the second parameter(element) to the first one
+  }
+
+
+// function extracts only the info we need from the the fetch request. Returns myUsers array
 function gatherUsersData(data){
     
     myUsers = data.results.map( user => {
         const users = {};
-        // users.id = user.login;
         users.name = user.name; // title, first, last
         users.id = user.name.first+'-'+user.name.last;
         users.image = user.picture; // large, medium, thumbnail
@@ -38,6 +56,7 @@ function gatherUsersData(data){
 
 }
 
+// function generates and appends user cards. takes a user array as parameter
 function generateUsers(data){
     data.map(user => {
         const html = `
@@ -58,7 +77,7 @@ function generateUsers(data){
     return data;
 }
 
-
+// function enables modal, adds event listeners to cards and invokes generateModal if user clicks on a card
 function enableModal(users){
     const userCards = document.querySelectorAll('.card');    
     
@@ -75,34 +94,26 @@ function enableModal(users){
         }
 }))}
 
+// function takes the selected card and users array.
 function generateModal(selectedUser, users){
     let user = selectedUser;
         modalContainer.style.display = 'block';
 
     if(modalContainer.hasChildNodes()) { modalContainer.innerText = '';}
 
-    const modalContent = document.createElement('div');
-        modalContent.classList = 'modal';
-    const extitButton = document.createElement('button');
+    const modalContent = createNode('div', 'modal');
+    const extitButton = createNode('button', 'modal-close-btn', 'modal-close-btn');
         extitButton.type = 'button';
-        extitButton.id = 'modal-close-btn';
-        extitButton.classList = 'modal-close-btn';
-    const extitButtonX = document.createElement('strong');
+    const extitButtonX = createNode('strong');
         extitButtonX.innerText = 'X';
-    const modalInfoContainer = document.createElement('div');
-        modalInfoContainer.classList = 'modal-info-container';
+    const modalInfoContainer = createNode('div', 'modal-info-container');
 
-    const modalNavigation = document.createElement('div');
-        modalNavigation.classList = 'modal-btn-container';
-    const prevButton = document.createElement('button');
+    const modalNavigation = createNode('div', 'modal-btn-container');
+    const prevButton = createNode('button', 'modal-prev btn', 'modal-prev');
         prevButton.type = 'button';
-        prevButton.id = 'modal-prev';
-        prevButton.classList = 'modal-prev btn';
         prevButton.innerText = 'Prev';
-    const nextButton = document.createElement('button');
+    const nextButton = createNode('button', 'modal-next btn', 'modal-next');
         nextButton.type = 'button';
-        nextButton.id = 'modal-next';
-        nextButton.classList = 'modal-next btn';
         nextButton.innerText = 'Next';
 
     let streetAdd = user.location.street;
@@ -118,18 +129,20 @@ function generateModal(selectedUser, users){
             <p class="modal-text">${streetAdd}</p>
             <p class="modal-text">Birthday: ${userBirthday}</p>
     `;
-    extitButton.appendChild(extitButtonX);
-    modalContent.appendChild(extitButton);
-    modalContent.appendChild(modalInfoContainer);
+
+
+    append(extitButton, extitButtonX)
+    append(modalContent, extitButton)
+    append(modalContent, modalInfoContainer)
+
     modalInfoContainer.insertAdjacentHTML('beforeend',html);
 
-    modalNavigation.appendChild(prevButton);
-    modalNavigation.appendChild(nextButton);
-
-    modalContent.appendChild(modalNavigation);
+    append(modalNavigation, prevButton)
+    append(modalNavigation, nextButton)
+    append(modalContent,modalNavigation)
 
     navigation(user, users, nextButton, prevButton);
-    modalContainer.appendChild(modalContent);
+    append(modalContainer, modalContent)
 
     extitButton.addEventListener('click', () => {
         let modalClose = document.querySelector('.modal-container')
@@ -150,21 +163,21 @@ function navigation (user, users, nextButton, prevButton){
                     nextButton.style.display = 'none';
                 }
 
-                if( i > 0){
-                    previousUser = users[i-1];
-                    prevButton.style.display = 'block';
-                    prevButton.addEventListener('click', () => {
-                        generateModal(previousUser, users);
-                    })
-                    }else{
-                        prevButton.style.display = 'none';
-                    }
+            if( i > 0){
+                previousUser = users[i-1];
+                prevButton.style.display = 'block';
+                prevButton.addEventListener('click', () => {
+                generateModal(previousUser, users);
+                })
+                }else{
+                    prevButton.style.display = 'none';
+                }
         }
     }
 }
+
 // normalize string and remove all unnecessary characters
 //informed from this discussion https://stackoverflow.com/questions/8358084/regular-expression-to-reformat-a-us-phone-number-in-javascript 
-
 function phoneNumberNormalize(phone){
  phone = phone.replace(/[^\d]/g, "");
      return phone.replace(/(\d{3})(\d{3})(\d{4})/, "($1) $2-$3");
@@ -174,10 +187,10 @@ function phoneNumberNormalize(phone){
 getRandomPeople(randomUsersUrl);
 
 //----------------------------------------------------------------
-// event listeners
+// exceeds 
 //----------------------------------------------------------------
 
-
+// function creates and appends search form. keyup event listener on the search field triggers searchUser function
 function createSearchForm() {
 
     let searchForm = document.createElement('form');
@@ -195,13 +208,10 @@ function createSearchForm() {
         inputSubmit.id = 'search-submit';
         inputSubmit.classList = 'search-submit';
 
-        searchForm.appendChild(inputSearch);
-        searchForm.appendChild(inputSubmit);
-        searchContainer.appendChild(searchForm);
+        append(searchForm, inputSearch)
+        append(searchForm, inputSubmit)
+        append(searchContainer, searchForm)
 
-        // inputSubmit.addEventListener('click', search => {
-        //     searchUser(inputSearch.value);
-        // })
         inputSearch.addEventListener('keyup', search => {
             searchUser(inputSearch.value);
         })
@@ -210,11 +220,13 @@ function createSearchForm() {
 }
 
 createSearchForm();
+
+//function takes user search field input and checks if the search field input matches letters user's names
+//if matched it pushes user to an array, removes existing cards. and invokes the generateUsers and enableModal functions with the new array. 
 function searchUser( query ) {
     let searchedUsers = [];
 
     let search = query.toLowerCase();
-    let userCards = document.querySelectorAll('.card');
     for ( let i = 0; i < myUsers.length; i++ ) {
         let userSearch = myUsers[i].id.toLowerCase();
         if (userSearch.includes(search)){            
